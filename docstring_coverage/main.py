@@ -4,59 +4,85 @@ import pkgutil
 import sys
 import pydoc
 import inspect
+import enum
+
+
+class Type(enum.Enum):
+    MODULE = 1
+    CLASS = 2
+    FUNCTION = 3
 
 
 class Counter():
-    def __init__(self,
-                 module_all=0, module_true=0,
-                 class_all=0, class_true=0,
-                 func_all=0, func_true=0):
-        self.module_all = module_all
-        self.module_true = module_true
+    def __init__(self, all=0, true=0):
+        self.all = all
+        self.true = true
 
-        self.class_all = class_all
-        self.class_true = class_true
+    def __add__(self, other):
+        return Counter(all=self.all + other.all,
+                       true=self.true + other.true)
 
-        self.func_all = func_all
-        self.func_true = func_true
+    def __repr__(self):
+        return f'<Counter: {self.true}/{self.all}>'
+    
+    def __eq__(self, other):
+        return self.all == other.all and self.true == other.true
 
-        self.name = None
+    def ratio_str(self):
+        ratio = self.ratio()
+        if ratio is None:
+            return '-'
+        return f'{ratio:2f}'
+
+    def ratio(self):
+        if self.all < 1:
+            return None
+        return self.true / self.all
+
+    def add(self, object):
+        self.all += 1
+        self.true += has_doc(object)
+
+
+class Coverage():
+    def __init__(self, counters=None, name=None):
+        if counters is not None:
+            self.counters = counters
+
+        self.counters = {}
+        for t in Type.__members__:
+            self.counters[t] = Counter()
+
+        self.name = name
 
     def __add__(self, other):
         """
-        :param other(Counter):
+        :param other(Coverage):
         :return:
-            Counter
+            Coverage
         """
-        return Counter(
-            module_all=self.module_all + other.module_all,
-            module_true=self.module_true + other.module_true,
+        merge = {}
 
-            class_all=self.class_all + other.class_all,
-            class_true=self.class_true + other.class_true,
+        for t in Type.__members__:
+            merge[t] = self.counters[t] + other.counters[t]
+        print('merge', merge)
 
-            func_all=self.func_all + other.func_all,
-            func_true=self.func_true + other.func_true,
-        )
+        return Coverage(merge)
 
     def report(self):
-        print(f'''
-module: {self.module_true} / {self.module_all}
-function: {self.func_true} / {self.func_all} 
-class: {self.class_true} / {self.class_all} 
-        ''')
+        for t in Type.__members__:
+            counter = self.counters[t]
+            print(f'{t.lower()}:'
+                  f' {counter.true} / {counter.all} {counter.ratio_str()}')
 
-    def class_(self, object):
-        self.class_all += 1
-        self.class_true += has_doc(object)
-
-    def func_(self, object):
-        self.func_all += 1
-        self.func_true += has_doc(object)
-
-    def module_(self, object):
-        self.module_all += 1
-        self.module_true += has_doc(object)
+    def add(self, object, type_):
+        """
+        :param object(object): 
+        :param type_(Type): 
+        :return:
+            None
+        """
+        self.counters[type_.name].add(object)
 
 
 def has_doc(object):
@@ -91,7 +117,7 @@ def count_module(object):
     for key, value in inspect.getmembers(object, inspect.isclass):
         # if __all__ exists, believe it.  Otherwise use old heuristic.
         if (all is not None or
-                (inspect.getmodule(value) or object) is object):
+            (inspect.getmodule(value) or object) is object):
             if pydoc.visiblename(key, all, object):
                 classes.append((key, value))
                 cdict[key] = cdict[value] = '#' + key
@@ -108,7 +134,7 @@ def count_module(object):
     for key, value in inspect.getmembers(object, inspect.isroutine):
         # if __all__ exists, believe it.  Otherwise use old heuristic.
         if (all is not None or
-                inspect.isbuiltin(value) or inspect.getmodule(value) is object):
+            inspect.isbuiltin(value) or inspect.getmodule(value) is object):
             if pydoc.visiblename(key, all, object):
                 funcs.append((key, value))
                 fdict[key] = '#-' + key
@@ -116,36 +142,35 @@ def count_module(object):
 
     print('--------')
     print(name)
-    # print('class:', classes)
-    # print('function:', funcs)
 
-    cnt = Counter()
-    cnt.module_(object)
+    coverage = Coverage(name=name)
+
+    coverage.add(object, Type.MODULE)
     for _, obj in classes:
-        cnt.class_(obj)
+        coverage.add(obj, Type.CLASS)
 
     for _, obj in funcs:
-        cnt.func_(obj)
-    # cnt.report()
-    return cnt
+        coverage.add(obj, Type.FUNCTION)
+    coverage.report()
+    return coverage
 
 
 def walk(root_path):
     sys.path.insert(0, root_path)
     packages = pkgutil.walk_packages([root_path])
 
-    counters = []
-    counter_sum = Counter()
+    coverages = []
+    coverage_sum = Coverage()
     for importer, modname, ispkg in packages:
         spec = pkgutil._get_spec(importer, modname)
 
         object = importlib._bootstrap._load(spec)
         counter = count_module(object)
-        counter.report()
-        counters.append(counter)
-        counter_sum = counter_sum + counter
 
-    counter_sum.report()
+        coverages.append(counter)
+        coverage_sum += counter
+
+    coverage_sum.report()
 
 
 if __name__ == '__main__':
