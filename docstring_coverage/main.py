@@ -23,7 +23,7 @@ class Counter():
                        true=self.true + other.true)
 
     def __repr__(self):
-        return f'<Counter: {self.true}/{self.all}>'
+        return '<Counter: {0}/{1}>'.format(self.true, self.all)
 
     def __eq__(self, other):
         return self.all == other.all and self.true == other.true
@@ -32,7 +32,7 @@ class Counter():
         ratio = self.ratio()
         if ratio is None:
             return '-'
-        return f'{ratio * 100 :.2f}%'
+        return '{0:.2f}%'.format(ratio * 100)
 
     def ratio(self):
         if self.all < 1:
@@ -72,8 +72,9 @@ class Coverage():
         for t in Type.__members__:
             counter = self.counters[t]
             if output == 'str':
-                print(f'{t.lower():<10}'
-                      f'{counter.true:>3} / {counter.all:>3} {counter.ratio_str()}')
+                print('{0:<10} {1:>3} / {2:>3} {3}'.format(
+                    t.lower(), counter.true, counter.all, counter.ratio_str()
+                ))
             if output == 'csv':
                 print(','.join((self.name, t.lower(),
                                 str(counter.true), str(counter.all),
