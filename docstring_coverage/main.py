@@ -1,10 +1,10 @@
 import argparse
-import importlib
-import pkgutil
-import sys
-import pydoc
-import inspect
 import enum
+import importlib
+import inspect
+import pkgutil
+import pydoc
+import sys
 
 
 class Type(enum.Enum):
@@ -24,7 +24,7 @@ class Counter():
 
     def __repr__(self):
         return f'<Counter: {self.true}/{self.all}>'
-    
+
     def __eq__(self, other):
         return self.all == other.all and self.true == other.true
 
@@ -32,7 +32,7 @@ class Counter():
         ratio = self.ratio()
         if ratio is None:
             return '-'
-        return f'{ratio:2f}'
+        return f'{ratio * 100 :.2f}%'
 
     def ratio(self):
         if self.all < 1:
@@ -48,10 +48,10 @@ class Coverage():
     def __init__(self, counters=None, name=None):
         if counters is not None:
             self.counters = counters
-
-        self.counters = {}
-        for t in Type.__members__:
-            self.counters[t] = Counter()
+        else:
+            self.counters = {}
+            for t in Type.__members__:
+                self.counters[t] = Counter()
 
         self.name = name
 
@@ -65,15 +65,19 @@ class Coverage():
 
         for t in Type.__members__:
             merge[t] = self.counters[t] + other.counters[t]
-        print('merge', merge)
 
-        return Coverage(merge)
+        return Coverage(counters=merge)
 
-    def report(self):
+    def report(self, output='str'):
         for t in Type.__members__:
             counter = self.counters[t]
-            print(f'{t.lower()}:'
-                  f' {counter.true} / {counter.all} {counter.ratio_str()}')
+            if output == 'str':
+                print(f'{t.lower():<10}'
+                      f'{counter.true:>3} / {counter.all:>3} {counter.ratio_str()}')
+            if output == 'csv':
+                print(','.join((self.name, t.lower(),
+                                str(counter.true), str(counter.all),
+                                counter.ratio_str())))
 
     def add(self, object, type_):
         """
@@ -100,7 +104,7 @@ def has_doc(object):
     return int(object.__doc__.strip() != "")
 
 
-def count_module(object):
+def count_module(object, output, is_all):
     """
     Reference: pydoc.HTMLDoc.docmodule
 
@@ -117,7 +121,7 @@ def count_module(object):
     for key, value in inspect.getmembers(object, inspect.isclass):
         # if __all__ exists, believe it.  Otherwise use old heuristic.
         if (all is not None or
-            (inspect.getmodule(value) or object) is object):
+                (inspect.getmodule(value) or object) is object):
             if pydoc.visiblename(key, all, object):
                 classes.append((key, value))
                 cdict[key] = cdict[value] = '#' + key
@@ -134,14 +138,11 @@ def count_module(object):
     for key, value in inspect.getmembers(object, inspect.isroutine):
         # if __all__ exists, believe it.  Otherwise use old heuristic.
         if (all is not None or
-            inspect.isbuiltin(value) or inspect.getmodule(value) is object):
+                inspect.isbuiltin(value) or inspect.getmodule(value) is object):
             if pydoc.visiblename(key, all, object):
                 funcs.append((key, value))
                 fdict[key] = '#-' + key
                 if inspect.isfunction(value): fdict[value] = fdict[key]
-
-    print('--------')
-    print(name)
 
     coverage = Coverage(name=name)
 
@@ -151,31 +152,48 @@ def count_module(object):
 
     for _, obj in funcs:
         coverage.add(obj, Type.FUNCTION)
-    coverage.report()
+
     return coverage
 
 
-def walk(root_path):
+def walk(root_path, output='str', is_all=False):
     sys.path.insert(0, root_path)
     packages = pkgutil.walk_packages([root_path])
 
     coverages = []
     coverage_sum = Coverage()
     for importer, modname, ispkg in packages:
+        print('modname', modname)
         spec = pkgutil._get_spec(importer, modname)
 
         object = importlib._bootstrap._load(spec)
-        counter = count_module(object)
+        counter = count_module(object, output=output, is_all=is_all)
+
+        if (is_all and output == 'str'):
+            print('--------')
+            print(counter.name)
+
+        if is_all:
+            counter.report(output)
 
         coverages.append(counter)
         coverage_sum += counter
 
-    coverage_sum.report()
+    return coverage_sum
+
+
+def main(root_path, output, is_all):
+    coverage = walk(root_path, output, is_all)
+    coverage.report(output)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("project_path", type=str)
+    parser.add_argument("--output", dest='output', default='str', type=str,
+                        help="[str,csv]")
+    parser.add_argument("--all", dest='all', action='store_true', default=False,
+                        help="Print all module coverage")
     parser.add_argument("--ignore", type=list, nargs='*')
     args = parser.parse_args()
-    walk(args.project_path)
+    walk(args.project_path, args.output, args.all)

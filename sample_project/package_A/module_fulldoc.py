@@ -1,3 +1,5 @@
+"""Module description"""
+
 def full_doc(arg1, arg2):
     """
     Summary.
@@ -9,4 +11,7 @@ def full_doc(arg1, arg2):
     :return:
         bool: ...
     """
+    return True
+
+def _pricate_func(arg1, arg2):
     return True
