@@ -34,7 +34,7 @@ def nodoc_func():
     pass
 
 def test_package_A():
-    coverage = walk('sample_project/package_A', 'csv', True)
+    coverage = walk('tests/sample_project/package_A', 'csv', True)
     assert coverage.counters[Type.FUNCTION.name].all == 1
     assert coverage.counters[Type.FUNCTION.name].true == 1
     assert coverage.counters[Type.MODULE.name].all == 1
@@ -45,7 +45,7 @@ def test_package_A():
 
 def test_package_B():
     print()
-    coverage = walk('sample_project/package_B', 'str', True)
+    coverage = walk('tests/sample_project/package_B', 'str', True)
     assert coverage.counters[Type.FUNCTION.name].all == 3
     assert coverage.counters[Type.FUNCTION.name].true == 1
     assert coverage.counters[Type.MODULE.name].all == 3
@@ -55,7 +55,7 @@ def test_package_B():
 
 def test_sample_project():
     print()
-    coverage = walk('sample_project', 'str', True)
+    coverage = walk('tests/sample_project', 'str', True)
     coverage.report()
     assert coverage.counters[Type.FUNCTION.name].all == 5
     assert coverage.counters[Type.FUNCTION.name].true == 3
