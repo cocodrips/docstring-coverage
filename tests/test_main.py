@@ -1,4 +1,4 @@
-from docstring_coverage.main import *
+from doccov.main import *
 
 
 def test_counter():
@@ -29,12 +29,14 @@ def doc_func():
     """has doc"""
     pass
 
+
 def nodoc_func():
     """ """
     pass
 
+
 def test_package_A():
-    coverage = walk('tests/sample_project/package_A', 'csv', True)
+    _, coverage = walk('tests/sample_project/package_A')
     assert coverage.counters[Type.FUNCTION.name].all == 1
     assert coverage.counters[Type.FUNCTION.name].true == 1
     assert coverage.counters[Type.MODULE.name].all == 1
@@ -44,8 +46,7 @@ def test_package_A():
 
 
 def test_package_B():
-    print()
-    coverage = walk('tests/sample_project/package_B', 'str', True)
+    _, coverage = walk('tests/sample_project/package_B')
     assert coverage.counters[Type.FUNCTION.name].all == 3
     assert coverage.counters[Type.FUNCTION.name].true == 1
     assert coverage.counters[Type.MODULE.name].all == 3
@@ -53,10 +54,9 @@ def test_package_B():
     assert coverage.counters[Type.CLASS.name].all == 1
     assert coverage.counters[Type.CLASS.name].true == 1
 
+
 def test_sample_project():
-    print()
-    coverage = walk('tests/sample_project', 'str', True)
-    coverage.report()
+    _, coverage = walk('tests/sample_project')
     assert coverage.counters[Type.FUNCTION.name].all == 5
     assert coverage.counters[Type.FUNCTION.name].true == 3
     assert coverage.counters[Type.MODULE.name].all == 7
@@ -64,3 +64,18 @@ def test_sample_project():
     assert coverage.counters[Type.CLASS.name].all == 2
     assert coverage.counters[Type.CLASS.name].true == 2
 
+
+def test_ignore():
+    _, coverage = walk('tests/sample_project', ['tests/sample_project/package_A'])
+    assert coverage.counters[Type.FUNCTION.name].all == 4
+    assert coverage.counters[Type.FUNCTION.name].true == 2
+    assert coverage.counters[Type.MODULE.name].all == 6
+    assert coverage.counters[Type.MODULE.name].true == 2
+    assert coverage.counters[Type.CLASS.name].all == 2
+    assert coverage.counters[Type.CLASS.name].true == 2
+
+def test_output_all_csv():
+    main('tests/sample_project', [], 'csv', [Type.FUNCTION], True)
+
+def test_output_str():
+    main('tests/sample_project', [], 'str', [Type.FUNCTION, Type.MODULE, Type.CLASS], False)

@@ -13,6 +13,31 @@ class Type(enum.Enum):
     FUNCTION = 3
 
 
+def report(coverage, output, output_types):
+    """
+    Args:
+        coverage(Coverage):
+        output(str): 'str' or 'csv'
+        output_types([Type]):
+
+    Returns:
+        None
+    """
+    if output == 'str':
+        print('---------{0:^10}---------'.format(coverage.name))
+
+    for t in output_types:
+        counter = coverage.counters[t.name]
+        if output == 'str':
+            print('{0:<10} {1:>3} / {2:>3} {3}'.format(
+                t.name.lower(), counter.true, counter.all, counter.ratio_str()
+            ))
+        if output == 'csv':
+            print(','.join((coverage.name, t.name.lower(),
+                            str(counter.true), str(counter.all),
+                            counter.ratio_str())))
+
+
 class Counter():
     def __init__(self, all=0, true=0):
         self.all = all
@@ -45,7 +70,7 @@ class Counter():
 
 
 class Coverage():
-    def __init__(self, counters=None, name=None):
+    def __init__(self, counters=None, name=''):
         if counters is not None:
             self.counters = counters
         else:
@@ -67,18 +92,6 @@ class Coverage():
             merge[t] = self.counters[t] + other.counters[t]
 
         return Coverage(counters=merge)
-
-    def report(self, output='str'):
-        for t in Type.__members__:
-            counter = self.counters[t]
-            if output == 'str':
-                print('{0:<10} {1:>3} / {2:>3} {3}'.format(
-                    t.lower(), counter.true, counter.all, counter.ratio_str()
-                ))
-            if output == 'csv':
-                print(','.join((self.name, t.lower(),
-                                str(counter.true), str(counter.all),
-                                counter.ratio_str())))
 
     def add(self, object, type_):
         """
@@ -105,7 +118,7 @@ def has_doc(object):
     return int(object.__doc__.strip() != "")
 
 
-def count_module(object, output, is_all):
+def count_module(object):
     """
     Reference: pydoc.HTMLDoc.docmodule
 
@@ -157,35 +170,52 @@ def count_module(object, output, is_all):
     return coverage
 
 
-def walk(root_path, output='str', is_all=False):
+def walk(root_path, ignores=None):
+    """
+    Count coverage of root_path tree.
+
+    Under ignores files is not counted.
+
+    Args:
+        root_path(str): Start path.
+        ignores([str]): Ignore paths.
+
+    Returns:
+        [Coverage], Coverage: Return all module coverage and summary.
+    """
+
+    if ignores is None:
+        ignores = []
+
     sys.path.insert(0, root_path)
     packages = pkgutil.walk_packages([root_path])
 
     coverages = []
-    coverage_sum = Coverage()
+    summary = Coverage()
     for importer, modname, ispkg in packages:
-        print('modname', modname)
+        if importer.path in ignores:
+            continue
+
         spec = pkgutil._get_spec(importer, modname)
 
         object = importlib._bootstrap._load(spec)
-        counter = count_module(object, output=output, is_all=is_all)
-
-        if (is_all and output == 'str'):
-            print('--------')
-            print(counter.name)
-
-        if is_all:
-            counter.report(output)
+        counter = count_module(object)
 
         coverages.append(counter)
-        coverage_sum += counter
+        summary += counter
 
-    return coverage_sum
+    summary.name = 'all'
+    return coverages, summary
 
 
-def main(root_path, output, is_all):
-    coverage = walk(root_path, output, is_all)
-    coverage.report(output)
+def main(root_path, ignores, output, output_type, is_all):
+    coverages, summary = walk(root_path, ignores)
+
+    if is_all:
+        for coverage in coverages:
+            report(coverage, output, output_type)
+
+    report(summary, output, output_type)
 
 
 if __name__ == '__main__':
@@ -195,6 +225,23 @@ if __name__ == '__main__':
                         help="[str,csv]")
     parser.add_argument("--all", dest='all', action='store_true', default=False,
                         help="Print all module coverage")
+    parser.add_argument("-m", "--module", dest='module', action='store_true', default=False,
+                        help="Print docstring coverage of modules.")
+    parser.add_argument("-f", "--function", dest='function', action='store_true', default=False,
+                        help="Print docstring coverage of public functions.")
+    parser.add_argument("-c", "--class", dest='klass', action='store_true', default=False,
+                        help="Print docstring coverage of classes.")
+
     parser.add_argument("--ignore", type=list, nargs='*')
+
     args = parser.parse_args()
-    walk(args.project_path, args.output, args.all)
+
+    output_type = []
+    if args.function:
+        output_type.append(Type.FUNCTION)
+    if args.klass:
+        output_type.append(Type.CLASS)
+    if args.module or not output_type:
+        output_type.append(Type.MODULE)
+
+    main(args.project_path, args.ignode, args.output, output_type, args.all)
