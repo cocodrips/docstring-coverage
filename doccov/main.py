@@ -208,7 +208,7 @@ def walk(root_path, ignores=None):
     return coverages, summary
 
 
-def main(root_path, ignores, output, output_type, is_all):
+def summary(root_path, ignores, output, output_type, is_all):
     coverages, summary = walk(root_path, ignores)
 
     if is_all:
@@ -218,7 +218,7 @@ def main(root_path, ignores, output, output_type, is_all):
     report(summary, output, output_type)
 
 
-if __name__ == '__main__':
+def entry_point():
     parser = argparse.ArgumentParser()
     parser.add_argument("project_path", type=str)
     parser.add_argument("--output", dest='output', default='str', type=str,
@@ -231,8 +231,7 @@ if __name__ == '__main__':
                         help="Print docstring coverage of public functions.")
     parser.add_argument("-c", "--class", dest='klass', action='store_true', default=False,
                         help="Print docstring coverage of classes.")
-
-    parser.add_argument("--ignore", type=list, nargs='*')
+    parser.add_argument("--ignore", dest='ignore', type=list, nargs='*')
 
     args = parser.parse_args()
 
@@ -244,4 +243,4 @@ if __name__ == '__main__':
     if args.module or not output_type:
         output_type.append(Type.MODULE)
 
-    main(args.project_path, args.ignode, args.output, output_type, args.all)
+    summary(args.project_path, args.ignore, args.output, output_type, args.all)

@@ -75,7 +75,7 @@ def test_ignore():
     assert coverage.counters[Type.CLASS.name].true == 2
 
 def test_output_all_csv():
-    main('tests/sample_project', [], 'csv', [Type.FUNCTION], True)
+    summary('tests/sample_project', [], 'csv', [Type.FUNCTION], True)
 
 def test_output_str():
-    main('tests/sample_project', [], 'str', [Type.FUNCTION, Type.MODULE, Type.CLASS], False)
+    summary('tests/sample_project', [], 'str', [Type.FUNCTION, Type.MODULE, Type.CLASS], False)
