@@ -10,7 +10,7 @@ doc-cov is a tool for measuring docstring coverage of Python project.
 1. Install doc-cov from pip.
 2. Use `doccov PROJECT_PATH`
 
-```sh
+```
 $ doccov tests/sample_project
 ---------   all    ---------
 module       3 /   7 42.86%
@@ -22,7 +22,7 @@ doc-cov can measure docstring coverage of functions, classes and modules.
 
 #### functions (default, `-f`) 
 
-```bash
+```
 $ doccov tests/sample_project -f
 ---------*coverage*---------
 function     3 /   5 60.00%
@@ -31,7 +31,7 @@ function     3 /   5 60.00%
 
 #### classes `-c`
 
-```bash
+```
 $ doccov tests/sample_project -c
 ---------*coverage*---------
 class        2 /   2 100.00%
@@ -40,7 +40,7 @@ class        2 /   2 100.00%
 
 #### modules `-m`
 
-```bash
+```
 $ doccov tests/sample_project -m
 ---------*coverage*---------
 module       3 /   7 42.86%
@@ -51,7 +51,7 @@ module       3 /   7 42.86%
 
 #### str (default, `--output str`)
 
-```bash
+```
 $ doccov tests/sample_project -fmc --output str
 ---------*coverage*---------
 function     3 /   5 60.00%
@@ -61,7 +61,7 @@ module       3 /   7 42.86%
 
 #### csv `--output csv`
 
-```bash
+```
 $ doccov tests/sample_project -fmc --output csv
 *coverage*,function,3,5,60.00%
 *coverage*,class,2,2,100.00%
@@ -71,15 +71,15 @@ $ doccov tests/sample_project -fmc --output csv
 ### Target 
 #### Print coverage of whole (default)
 
-```bash
+```
 $ doccov tests/sample_project
 ---------*coverage*---------
 module       3 /   7 42.86%
 ```  
 #### Print all coverage of modules `--all`
 
-```bash
-docstring-coverage doccov tests/sample_project --all
+```
+$ docstring-coverage doccov tests/sample_project --all
 ---------module_fulldoc---------
 module       1 /   1 100.00%
 ---------package_A ---------
