@@ -239,12 +239,12 @@ def entry_point():
     args = parser.parse_args()
 
     output_type = []
-    if args.function:
-        output_type.append(Type.FUNCTION)
     if args.klass:
         output_type.append(Type.CLASS)
-    if args.module or not output_type:
+    if args.module:
         output_type.append(Type.MODULE)
+    if args.function or not output_type:
+        output_type.append(Type.FUNCTION)
 
     summary(args.project_path, args.output, output_type, args.all)
 

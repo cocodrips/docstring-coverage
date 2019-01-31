@@ -74,27 +74,28 @@ $ doccov tests/sample_project -fmc --output csv
 ```
 $ doccov tests/sample_project
 ---------*coverage*---------
-module       3 /   7 42.86%
+function     3 /   5 60.00%
+
 ```  
 #### Print all coverage of modules `--all`
 
 ```
-$ docstring-coverage doccov tests/sample_project --all
+$ doccov tests/sample_project --all
 ---------module_fulldoc---------
-module       1 /   1 100.00%
+function     1 /   1 100.00%
 ---------package_A ---------
-module       1 /   1 100.00%
+function     0 /   0 -
 ---------package_A.module_fulldoc---------
-module       1 /   1 100.00%
+function     1 /   1 100.00%
 ---------package_B ---------
-module       0 /   1 0.00%
+function     0 /   0 -
 ---------package_B.module_shortdoc---------
-module       0 /   1 0.00%
+function     1 /   1 100.00%
 ---------package_B.package_B_1---------
-module       0 /   1 0.00%
+function     0 /   0 -
 ---------package_B.package_B_1.module_nodoc---------
-module       0 /   1 0.00%
+function     0 /   2 0.00%
 ---------*coverage*---------
-module       3 /   7 42.86%
+function     3 /   5 60.00%
 
 ```
