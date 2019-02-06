@@ -65,17 +65,9 @@ def test_sample_project():
     assert coverage.counters[Type.CLASS.name].true == 2
 
 
-def test_ignore():
-    _, coverage = walk('tests/sample_project', ['tests/sample_project/package_A'])
-    assert coverage.counters[Type.FUNCTION.name].all == 4
-    assert coverage.counters[Type.FUNCTION.name].true == 2
-    assert coverage.counters[Type.MODULE.name].all == 6
-    assert coverage.counters[Type.MODULE.name].true == 2
-    assert coverage.counters[Type.CLASS.name].all == 2
-    assert coverage.counters[Type.CLASS.name].true == 2
-
 def test_output_all_csv():
-    main('tests/sample_project', [], 'csv', [Type.FUNCTION], True)
+    summary('tests/sample_project', 'csv', [Type.FUNCTION], True)
+
 
 def test_output_str():
-    main('tests/sample_project', [], 'str', [Type.FUNCTION, Type.MODULE, Type.CLASS], False)
+    summary('tests/sample_project', 'str', [Type.FUNCTION, Type.MODULE, Type.CLASS], False)

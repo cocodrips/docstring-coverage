@@ -23,7 +23,7 @@ def report(coverage, output, output_types):
     Returns:
         None
     """
-    if output == 'str':
+    if output == 'str' and coverage.name:
         print('---------{0:^10}---------'.format(coverage.name))
 
     for t in output_types:
@@ -170,7 +170,7 @@ def count_module(object):
     return coverage
 
 
-def walk(root_path, ignores=None):
+def walk(root_path):
     """
     Count coverage of root_path tree.
 
@@ -178,14 +178,10 @@ def walk(root_path, ignores=None):
 
     Args:
         root_path(str): Start path.
-        ignores([str]): Ignore paths.
 
     Returns:
         [Coverage], Coverage: Return all module coverage and summary.
     """
-
-    if ignores is None:
-        ignores = []
 
     sys.path.insert(0, root_path)
     packages = pkgutil.walk_packages([root_path])
@@ -193,9 +189,6 @@ def walk(root_path, ignores=None):
     coverages = []
     summary = Coverage()
     for importer, modname, ispkg in packages:
-        if importer.path in ignores:
-            continue
-
         spec = pkgutil._get_spec(importer, modname)
 
         object = importlib._bootstrap._load(spec)
@@ -204,12 +197,23 @@ def walk(root_path, ignores=None):
         coverages.append(counter)
         summary += counter
 
-    summary.name = 'all'
+    summary.name = '*coverage*'
     return coverages, summary
 
 
-def main(root_path, ignores, output, output_type, is_all):
-    coverages, summary = walk(root_path, ignores)
+def summary(root_path, output, output_type, is_all):
+    """
+    Args:
+        root_path: Project path
+        ignores:
+        output:
+        output_type:
+        is_all:
+
+    Returns:
+
+    """
+    coverages, summary = walk(root_path)
 
     if is_all:
         for coverage in coverages:
@@ -218,7 +222,7 @@ def main(root_path, ignores, output, output_type, is_all):
     report(summary, output, output_type)
 
 
-if __name__ == '__main__':
+def entry_point():
     parser = argparse.ArgumentParser()
     parser.add_argument("project_path", type=str)
     parser.add_argument("--output", dest='output', default='str', type=str,
@@ -232,16 +236,18 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--class", dest='klass', action='store_true', default=False,
                         help="Print docstring coverage of classes.")
 
-    parser.add_argument("--ignore", type=list, nargs='*')
-
     args = parser.parse_args()
 
     output_type = []
-    if args.function:
-        output_type.append(Type.FUNCTION)
     if args.klass:
         output_type.append(Type.CLASS)
-    if args.module or not output_type:
+    if args.module:
         output_type.append(Type.MODULE)
+    if args.function or not output_type:
+        output_type.append(Type.FUNCTION)
 
-    main(args.project_path, args.ignode, args.output, output_type, args.all)
+    summary(args.project_path, args.output, output_type, args.all)
+
+
+if __name__ == '__main__':
+    entry_point()
