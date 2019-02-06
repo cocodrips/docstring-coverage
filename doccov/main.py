@@ -13,7 +13,7 @@ class Type(enum.Enum):
     FUNCTION = 3
 
 
-def report(coverage, output, output_types):
+def report(coverage, output, output_types, is_all=False):
     """
     Args:
         coverage(Coverage):
@@ -23,9 +23,10 @@ def report(coverage, output, output_types):
     Returns:
         None
     """
-    if output == 'str' and coverage.name:
-        print('---------{0:^10}---------'.format(coverage.name))
-
+    if output == 'str' and coverage.name and is_all:
+        print('=============================')
+        print(coverage.name)
+        print('-----------------------------')
     for t in output_types:
         counter = coverage.counters[t.name]
         if output == 'str':
@@ -197,7 +198,7 @@ def walk(root_path):
         coverages.append(counter)
         summary += counter
 
-    summary.name = '*coverage*'
+    summary.name = 'coverage'
     return coverages, summary
 
 
@@ -217,9 +218,9 @@ def summary(root_path, output, output_type, is_all):
 
     if is_all:
         for coverage in coverages:
-            report(coverage, output, output_type)
+            report(coverage, output, output_type, is_all)
 
-    report(summary, output, output_type)
+    report(summary, output, output_type, is_all)
 
 
 def entry_point():

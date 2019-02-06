@@ -12,8 +12,7 @@ doc-cov is a tool for measuring docstring coverage of Python project.
 
 ```
 $ doccov tests/sample_project
----------   all    ---------
-module       3 /   7 42.86%
+function     3 /   5 60.00%
 ```
 
 ## Options
@@ -24,7 +23,6 @@ doc-cov can measure docstring coverage of functions, classes and modules.
 
 ```
 $ doccov tests/sample_project -f
----------*coverage*---------
 function     3 /   5 60.00%
 
 ```
@@ -33,7 +31,6 @@ function     3 /   5 60.00%
 
 ```
 $ doccov tests/sample_project -c
----------*coverage*---------
 class        2 /   2 100.00%
 
 ```
@@ -42,7 +39,6 @@ class        2 /   2 100.00%
 
 ```
 $ doccov tests/sample_project -m
----------*coverage*---------
 module       3 /   7 42.86%
 
 ```
@@ -53,19 +49,18 @@ module       3 /   7 42.86%
 
 ```
 $ doccov tests/sample_project -fmc --output str
----------*coverage*---------
-function     3 /   5 60.00%
 class        2 /   2 100.00%
 module       3 /   7 42.86%
+function     3 /   5 60.00%
 ```
 
 #### csv `--output csv`
 
 ```
 $ doccov tests/sample_project -fmc --output csv
-*coverage*,function,3,5,60.00%
-*coverage*,class,2,2,100.00%
-*coverage*,module,3,7,42.86%
+coverage,class,2,2,100.00%
+coverage,module,3,7,42.86%
+coverage,function,3,5,60.00%
 ```
 
 ### Target 
@@ -73,7 +68,6 @@ $ doccov tests/sample_project -fmc --output csv
 
 ```
 $ doccov tests/sample_project
----------*coverage*---------
 function     3 /   5 60.00%
 
 ```  
@@ -81,21 +75,36 @@ function     3 /   5 60.00%
 
 ```
 $ doccov tests/sample_project --all
----------module_fulldoc---------
+=============================
+module_fulldoc
+-----------------------------
 function     1 /   1 100.00%
----------package_A ---------
+=============================
+package_A
+-----------------------------
 function     0 /   0 -
----------package_A.module_fulldoc---------
+=============================
+package_A.module_fulldoc
+-----------------------------
 function     1 /   1 100.00%
----------package_B ---------
+=============================
+package_B
+-----------------------------
 function     0 /   0 -
----------package_B.module_shortdoc---------
+=============================
+package_B.module_shortdoc
+-----------------------------
 function     1 /   1 100.00%
----------package_B.package_B_1---------
+=============================
+package_B.package_B_1
+-----------------------------
 function     0 /   0 -
----------package_B.package_B_1.module_nodoc---------
+=============================
+package_B.package_B_1.module_nodoc
+-----------------------------
 function     0 /   2 0.00%
----------*coverage*---------
+=============================
+coverage
+-----------------------------
 function     3 /   5 60.00%
-
 ```
